@@ -89,71 +89,64 @@ const SocialFeed = () => {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto h-[800px] relative perspective-1000">
-          {posts.map((post, index) => {
-            // Calculate different unveil positions for each card - increased spacing
-            const unveilY = isInView ? `${index * 160}px` : "0px";
-            const unveilRotate = isInView ? `${index * -5}deg` : "0deg";
-            
-            // Get color-specific classes for each card - with more vibrant colors
-            const colorClasses = {
-              primary: "bg-gradient-to-br from-rose-500/30 to-rose-700/30 border-rose-500/40 hover:bg-gradient-to-br hover:from-rose-500/40 hover:to-rose-700/40",
-              accent: "bg-gradient-to-br from-amber-500/30 to-amber-700/30 border-amber-500/40 hover:bg-gradient-to-br hover:from-amber-500/40 hover:to-amber-700/40",
-              secondary: "bg-gradient-to-br from-violet-500/30 to-violet-700/30 border-violet-500/40 hover:bg-gradient-to-br hover:from-violet-500/40 hover:to-violet-700/40"
-            };
-            
-            return (
-              <Card 
-                key={post.id} 
-                className={`glass-card border-2 absolute w-full transition-all duration-700 ease-out backface-hidden ${colorClasses[post.color as keyof typeof colorClasses]}`}
-                style={{ 
-                  transformStyle: "preserve-3d",
-                  zIndex: posts.length - index,
-                  top: "0px", // All cards start at the same position
-                  transform: isInView 
-                    ? `translateY(${unveilY}) rotate(${unveilRotate})` 
-                    : "translateY(0) rotate(0deg)",
-                  opacity: 1,
-                  transitionDelay: `${index * 300}ms`,
-                  boxShadow: isInView ? `0 ${index * 6}px ${index * 8}px rgba(0,0,0,0.25)` : "none"
-                }}
-              >
-                <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
-                  <Avatar>
-                    <AvatarImage src={post.author.avatar} />
-                    <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <div className="font-semibold">{post.author.name}</div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Badge variant="secondary" className="text-xs">
-                        {post.author.status}
-                      </Badge>
-                      {post.author.grade && <span>{post.author.grade}</span>}
-                      <span>• {post.timeAgo}</span>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {posts.map((post, index) => {
+              // Get color-specific classes for each card - with vibrant colors
+              const colorClasses = {
+                primary: "bg-gradient-to-br from-rose-500/30 to-rose-700/30 border-rose-500/40 hover:bg-gradient-to-br hover:from-rose-500/40 hover:to-rose-700/40",
+                accent: "bg-gradient-to-br from-amber-500/30 to-amber-700/30 border-amber-500/40 hover:bg-gradient-to-br hover:from-amber-500/40 hover:to-amber-700/40",
+                secondary: "bg-gradient-to-br from-violet-500/30 to-violet-700/30 border-violet-500/40 hover:bg-gradient-to-br hover:from-violet-500/40 hover:to-violet-700/40"
+              };
+              
+              return (
+                <Card 
+                  key={post.id} 
+                  className={`glass-card border-2 transition-all duration-700 ease-out ${colorClasses[post.color as keyof typeof colorClasses]}`}
+                  style={{ 
+                    opacity: isInView ? 1 : 0,
+                    transform: isInView ? 'translateY(0)' : 'translateY(50px)',
+                    transitionDelay: `${index * 200}ms`,
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.25)'
+                  }}
+                >
+                  <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                    <Avatar>
+                      <AvatarImage src={post.author.avatar} />
+                      <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <div className="font-semibold">{post.author.name}</div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Badge variant="secondary" className="text-xs">
+                          {post.author.status}
+                        </Badge>
+                        {post.author.grade && <span>{post.author.grade}</span>}
+                        <span>• {post.timeAgo}</span>
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-3">
-                  <p>{post.content}</p>
-                </CardContent>
-                <CardFooter className="border-t border-border pt-3 flex justify-between">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    <ThumbsUp className="h-4 w-4 mr-1" />
-                    {post.likes}
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    <MessageCircle className="h-4 w-4 mr-1" />
-                    {post.comments}
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    <Share2 className="h-4 w-4 mr-1" />
-                    Share
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
+                  </CardHeader>
+                  <CardContent className="pt-3">
+                    <p>{post.content}</p>
+                  </CardContent>
+                  <CardFooter className="border-t border-border pt-3 flex justify-between">
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                      <ThumbsUp className="h-4 w-4 mr-1" />
+                      {post.likes}
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      {post.comments}
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                      <Share2 className="h-4 w-4 mr-1" />
+                      Share
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
