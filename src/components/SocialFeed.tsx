@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,8 @@ const posts = [
     content: "Just finished my science fair project on renewable energy! Can't wait to present next week. #ScienceFair #RenewableEnergy",
     likes: 24,
     comments: 5,
-    timeAgo: "2h"
+    timeAgo: "2h",
+    color: "primary" // First card color
   },
   {
     id: 2,
@@ -31,7 +33,8 @@ const posts = [
     content: "Started volunteering at the local animal shelter today. Such an amazing experience working with these beautiful creatures! Looking for more volunteer opportunities in environmental conservation. Any suggestions? #Volunteering #AnimalLover",
     likes: 38,
     comments: 12,
-    timeAgo: "5h"
+    timeAgo: "5h",
+    color: "accent" // Second card color
   },
   {
     id: 3,
@@ -44,7 +47,8 @@ const posts = [
     content: "Just got accepted to the summer coding bootcamp at Tech University! So excited to dive deeper into web development. If anyone else is attending, let's connect! #CodingBootcamp #WebDev #SummerPrograms",
     likes: 45,
     comments: 8,
-    timeAgo: "1d"
+    timeAgo: "1d",
+    color: "secondary" // Third card color
   }
 ];
 
@@ -85,58 +89,71 @@ const SocialFeed = () => {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto h-[500px] relative perspective-1000">
-          {posts.map((post, index) => (
-            <Card 
-              key={post.id} 
-              className="glass-card border-muted absolute w-full transition-all duration-700 ease-out backface-hidden"
-              style={{ 
-                transformStyle: "preserve-3d",
-                zIndex: isInView ? posts.length - index : posts.length - index,
-                top: isInView ? `${index * 20}px` : "0px",
-                transform: isInView 
-                  ? `translateY(0) rotate(${index * -2}deg)` 
-                  : "translateY(0) rotate(0deg)",
-                opacity: isInView ? 1 : index === 0 ? 1 : 0,
-                transitionDelay: `${index * 200}ms`,
-                boxShadow: isInView ? `0 ${index * 2}px ${index * 3}px rgba(0,0,0,0.1)` : "none"
-              }}
-            >
-              <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
-                <Avatar>
-                  <AvatarImage src={post.author.avatar} />
-                  <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <div className="font-semibold">{post.author.name}</div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Badge variant="secondary" className="text-xs">
-                      {post.author.status}
-                    </Badge>
-                    {post.author.grade && <span>{post.author.grade}</span>}
-                    <span>• {post.timeAgo}</span>
+        <div className="max-w-2xl mx-auto h-[600px] relative perspective-1000">
+          {posts.map((post, index) => {
+            // Calculate different unveil positions for each card
+            const unveilY = isInView ? `${index * 120}px` : "0px";
+            const unveilRotate = isInView ? `${index * -5}deg` : "0deg";
+            
+            // Get color-specific classes for each card
+            const colorClasses = {
+              primary: "bg-primary/10 border-primary/20 hover:bg-primary/15",
+              accent: "bg-accent/10 border-accent/20 hover:bg-accent/15",
+              secondary: "bg-secondary/20 border-secondary/30 hover:bg-secondary/25"
+            };
+            
+            return (
+              <Card 
+                key={post.id} 
+                className={`glass-card border-muted absolute w-full transition-all duration-700 ease-out backface-hidden ${colorClasses[post.color as keyof typeof colorClasses]}`}
+                style={{ 
+                  transformStyle: "preserve-3d",
+                  zIndex: posts.length - index,
+                  top: "0px", // All cards start at the same position
+                  transform: isInView 
+                    ? `translateY(${unveilY}) rotate(${unveilRotate})` 
+                    : "translateY(0) rotate(0deg)",
+                  opacity: 1,
+                  transitionDelay: `${index * 300}ms`,
+                  boxShadow: isInView ? `0 ${index * 4}px ${index * 6}px rgba(0,0,0,0.2)` : "none"
+                }}
+              >
+                <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                  <Avatar>
+                    <AvatarImage src={post.author.avatar} />
+                    <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <div className="font-semibold">{post.author.name}</div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Badge variant="secondary" className="text-xs">
+                        {post.author.status}
+                      </Badge>
+                      {post.author.grade && <span>{post.author.grade}</span>}
+                      <span>• {post.timeAgo}</span>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-3">
-                <p>{post.content}</p>
-              </CardContent>
-              <CardFooter className="border-t border-border pt-3 flex justify-between">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  <ThumbsUp className="h-4 w-4 mr-1" />
-                  {post.likes}
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  {post.comments}
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  <Share2 className="h-4 w-4 mr-1" />
-                  Share
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="pt-3">
+                  <p>{post.content}</p>
+                </CardContent>
+                <CardFooter className="border-t border-border pt-3 flex justify-between">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <ThumbsUp className="h-4 w-4 mr-1" />
+                    {post.likes}
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    {post.comments}
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Share2 className="h-4 w-4 mr-1" />
+                    Share
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>
