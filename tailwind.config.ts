@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -71,6 +70,12 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			perspective: {
+				'1000': '1000px',
+			},
+			transformStyle: {
+				'3d': 'preserve-3d',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -177,6 +182,14 @@ export default {
 				'background-pan': {
 					'0%': { backgroundPosition: '0% center' },
 					'100%': { backgroundPosition: '-200% center' }
+				},
+				'card-stack': {
+					'0%': { transform: 'translateY(20px) rotate(6deg)', opacity: '0' },
+					'100%': { transform: 'translateY(0) rotate(0deg)', opacity: '1' }
+				},
+				'card-unstack': {
+					'0%': { transform: 'translateY(0) rotate(0deg)', opacity: '1' },
+					'100%': { transform: 'translateY(20px) rotate(6deg)', opacity: '0' }
 				}
 			},
 			animation: {
@@ -192,7 +205,9 @@ export default {
 				'wave': 'wave 2.5s ease-in-out infinite',
 				'ripple': 'ripple 2s linear infinite',
 				'typing': 'typing 6s steps(40, end) infinite',
-				'background-pan': 'background-pan 3s linear infinite'
+				'background-pan': 'background-pan 3s linear infinite',
+				'card-stack': 'card-stack 0.7s ease-out forwards',
+				'card-unstack': 'card-unstack 0.7s ease-in forwards'
 			}
 		}
 	},

@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useRef, useState } from "react";
 
 // Sample data for posts
 const posts = [
@@ -49,8 +50,34 @@ const posts = [
 ];
 
 const SocialFeed = () => {
+  const feedRef = useRef<HTMLDivElement>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      const position = window.scrollY;
+      setScrollPosition(position);
+    };
+    
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  // Calculate the starting point for animation (when section comes into view)
+  const calculateAnimationStart = () => {
+    if (!feedRef.current) return 0;
+    
+    const rect = feedRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    return rect.top < viewportHeight * 0.75;
+  };
+
+  const isVisible = calculateAnimationStart();
+
   return (
-    <section className="py-12 md:py-20">
+    <section ref={feedRef} className="py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -61,9 +88,23 @@ const SocialFeed = () => {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto space-y-6">
-          {posts.map((post) => (
-            <Card key={post.id} className="glass-card border-muted">
+        <div className="max-w-2xl mx-auto space-y-6 relative perspective-1000">
+          {posts.map((post, index) => (
+            <Card 
+              key={post.id} 
+              className={`glass-card border-muted transition-all duration-700 ease-out ${
+                isVisible 
+                  ? "opacity-100 translate-y-0 rotate-0" 
+                  : `opacity-0 ${index === 0 ? "translate-y-16" : index === 1 ? "translate-y-8" : "translate-y-0"} ${
+                      index === 0 ? "rotate-6" : index === 1 ? "rotate-3" : "rotate-0"
+                    }`
+              }`}
+              style={{ 
+                transformStyle: "preserve-3d",
+                transitionDelay: `${index * 200}ms`,
+                zIndex: posts.length - index
+              }}
+            >
               <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
                 <Avatar>
                   <AvatarImage src={post.author.avatar} />
