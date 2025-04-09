@@ -144,6 +144,39 @@ export default {
 					'50%': {
 						transform: 'translateY(-5px)'
 					}
+				},
+				'spin-slow': {
+					'0%': {
+						transform: 'rotate(0deg)'
+					},
+					'100%': {
+						transform: 'rotate(360deg)'
+					}
+				},
+				'wave': {
+					'0%': { transform: 'rotate(0deg)' },
+					'10%': { transform: 'rotate(14deg)' },
+					'20%': { transform: 'rotate(-8deg)' },
+					'30%': { transform: 'rotate(14deg)' },
+					'40%': { transform: 'rotate(-4deg)' },
+					'50%': { transform: 'rotate(10deg)' },
+					'60%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(0deg)' }
+				},
+				'ripple': {
+					'0%': { transform: 'scale(0.8)', opacity: '1' },
+					'50%': { transform: 'scale(1.5)', opacity: '0.5' },
+					'100%': { transform: 'scale(2.2)', opacity: '0' }
+				},
+				'typing': {
+					'0%': { width: '0%' },
+					'50%': { width: '100%' },
+					'90%': { width: '100%' },
+					'100%': { width: '0%' }
+				},
+				'background-pan': {
+					'0%': { backgroundPosition: '0% center' },
+					'100%': { backgroundPosition: '-200% center' }
 				}
 			},
 			animation: {
@@ -154,7 +187,12 @@ export default {
 				'float': 'float 6s ease-in-out infinite',
 				'float-delayed': 'float-delayed 8s ease-in-out infinite',
 				'ping-slow': 'ping-slow 4s cubic-bezier(0, 0, 0.2, 1) infinite',
-				'bounce-slow': 'bounce-slow 2s ease-in-out infinite'
+				'bounce-slow': 'bounce-slow 2s ease-in-out infinite',
+				'spin-slow': 'spin-slow 15s linear infinite',
+				'wave': 'wave 2.5s ease-in-out infinite',
+				'ripple': 'ripple 2s linear infinite',
+				'typing': 'typing 6s steps(40, end) infinite',
+				'background-pan': 'background-pan 3s linear infinite'
 			}
 		}
 	},
