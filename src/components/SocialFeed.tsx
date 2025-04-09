@@ -89,23 +89,23 @@ const SocialFeed = () => {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto h-[600px] relative perspective-1000">
+        <div className="max-w-2xl mx-auto h-[800px] relative perspective-1000">
           {posts.map((post, index) => {
-            // Calculate different unveil positions for each card
-            const unveilY = isInView ? `${index * 120}px` : "0px";
+            // Calculate different unveil positions for each card - increased spacing
+            const unveilY = isInView ? `${index * 160}px` : "0px";
             const unveilRotate = isInView ? `${index * -5}deg` : "0deg";
             
-            // Get color-specific classes for each card
+            // Get color-specific classes for each card - with more vibrant colors
             const colorClasses = {
-              primary: "bg-primary/10 border-primary/20 hover:bg-primary/15",
-              accent: "bg-accent/10 border-accent/20 hover:bg-accent/15",
-              secondary: "bg-secondary/20 border-secondary/30 hover:bg-secondary/25"
+              primary: "bg-gradient-to-br from-rose-500/30 to-rose-700/30 border-rose-500/40 hover:bg-gradient-to-br hover:from-rose-500/40 hover:to-rose-700/40",
+              accent: "bg-gradient-to-br from-amber-500/30 to-amber-700/30 border-amber-500/40 hover:bg-gradient-to-br hover:from-amber-500/40 hover:to-amber-700/40",
+              secondary: "bg-gradient-to-br from-violet-500/30 to-violet-700/30 border-violet-500/40 hover:bg-gradient-to-br hover:from-violet-500/40 hover:to-violet-700/40"
             };
             
             return (
               <Card 
                 key={post.id} 
-                className={`glass-card border-muted absolute w-full transition-all duration-700 ease-out backface-hidden ${colorClasses[post.color as keyof typeof colorClasses]}`}
+                className={`glass-card border-2 absolute w-full transition-all duration-700 ease-out backface-hidden ${colorClasses[post.color as keyof typeof colorClasses]}`}
                 style={{ 
                   transformStyle: "preserve-3d",
                   zIndex: posts.length - index,
@@ -115,7 +115,7 @@ const SocialFeed = () => {
                     : "translateY(0) rotate(0deg)",
                   opacity: 1,
                   transitionDelay: `${index * 300}ms`,
-                  boxShadow: isInView ? `0 ${index * 4}px ${index * 6}px rgba(0,0,0,0.2)` : "none"
+                  boxShadow: isInView ? `0 ${index * 6}px ${index * 8}px rgba(0,0,0,0.25)` : "none"
                 }}
               >
                 <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
