@@ -1,5 +1,4 @@
 
-import { Bell, MessageSquare, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -14,15 +13,6 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Notifications">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Messages">
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" title="Profile">
-            <User className="h-5 w-5" />
-          </Button>
           <Button variant="outline" className="hidden md:inline-flex ml-2">
             Log In
           </Button>

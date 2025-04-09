@@ -45,15 +45,15 @@ const OpportunitiesSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-fade-in">
               Discover Opportunities
             </h2>
-            <p className="text-muted-foreground max-w-2xl">
+            <p className="text-muted-foreground max-w-2xl animate-fade-in">
               Find programs, internships, competitions, and more to help you grow and explore your interests.
             </p>
           </div>
           <Link to="/opportunities">
-            <Button variant="outline" className="mt-4 md:mt-0 gap-2 self-start md:self-auto">
+            <Button variant="outline" className="mt-4 md:mt-0 gap-2 self-start md:self-auto hover:scale-105 transition-transform">
               Explore All <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -61,7 +61,7 @@ const OpportunitiesSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {opportunities.map((opp) => (
-            <Card key={opp.id} className="glass-card h-full border-muted">
+            <Card key={opp.id} className="glass-card h-full border-muted hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <Badge className="bg-primary/20 text-primary hover:bg-primary/30 mb-2">
@@ -92,7 +92,9 @@ const OpportunitiesSection = () => {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">View Details</Button>
+                <Link to="/opportunities" className="w-full">
+                  <Button variant="outline" className="w-full">View Details</Button>
+                </Link>
               </CardFooter>
             </Card>
           ))}
