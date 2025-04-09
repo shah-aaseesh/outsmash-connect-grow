@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -184,12 +185,20 @@ export default {
 					'100%': { backgroundPosition: '-200% center' }
 				},
 				'card-stack': {
-					'0%': { transform: 'translateY(20px) rotate(6deg)', opacity: '0' },
+					'0%': { transform: 'translateY(100px) rotate(-10deg)', opacity: '0' },
 					'100%': { transform: 'translateY(0) rotate(0deg)', opacity: '1' }
 				},
-				'card-unstack': {
-					'0%': { transform: 'translateY(0) rotate(0deg)', opacity: '1' },
-					'100%': { transform: 'translateY(20px) rotate(6deg)', opacity: '0' }
+				'card-unveil': {
+					'0%': { transform: 'translateY(0) rotate(0deg)' },
+					'100%': { transform: 'translateY(var(--unveil-y)) rotate(var(--unveil-rotate))' }
+				},
+				'card-fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
+				'card-shift': {
+					'0%': { transform: 'translateY(0px)' },
+					'100%': { transform: 'translateY(var(--shift-y))' }
 				}
 			},
 			animation: {
@@ -207,7 +216,9 @@ export default {
 				'typing': 'typing 6s steps(40, end) infinite',
 				'background-pan': 'background-pan 3s linear infinite',
 				'card-stack': 'card-stack 0.7s ease-out forwards',
-				'card-unstack': 'card-unstack 0.7s ease-in forwards'
+				'card-unveil': 'card-unveil 0.7s ease-out forwards',
+				'card-fade-in': 'card-fade-in 0.5s ease-out forwards',
+				'card-shift': 'card-shift 0.7s ease-out forwards'
 			}
 		}
 	},

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -52,29 +51,27 @@ const posts = [
 const SocialFeed = () => {
   const feedRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [isInView, setIsInView] = useState(false);
   
   useEffect(() => {
     const handleScroll = () => {
       const position = window.scrollY;
       setScrollPosition(position);
+      
+      if (feedRef.current) {
+        const rect = feedRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        setIsInView(rect.top < viewportHeight * 0.75);
+      }
     };
     
     window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  // Calculate the starting point for animation (when section comes into view)
-  const calculateAnimationStart = () => {
-    if (!feedRef.current) return 0;
-    
-    const rect = feedRef.current.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    return rect.top < viewportHeight * 0.75;
-  };
-
-  const isVisible = calculateAnimationStart();
 
   return (
     <section ref={feedRef} className="py-12 md:py-20">
@@ -88,21 +85,21 @@ const SocialFeed = () => {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto space-y-6 relative perspective-1000">
+        <div className="max-w-2xl mx-auto h-[500px] relative perspective-1000">
           {posts.map((post, index) => (
             <Card 
               key={post.id} 
-              className={`glass-card border-muted transition-all duration-700 ease-out ${
-                isVisible 
-                  ? "opacity-100 translate-y-0 rotate-0" 
-                  : `opacity-0 ${index === 0 ? "translate-y-16" : index === 1 ? "translate-y-8" : "translate-y-0"} ${
-                      index === 0 ? "rotate-6" : index === 1 ? "rotate-3" : "rotate-0"
-                    }`
-              }`}
+              className="glass-card border-muted absolute w-full transition-all duration-700 ease-out backface-hidden"
               style={{ 
                 transformStyle: "preserve-3d",
+                zIndex: isInView ? posts.length - index : posts.length - index,
+                top: isInView ? `${index * 20}px` : "0px",
+                transform: isInView 
+                  ? `translateY(0) rotate(${index * -2}deg)` 
+                  : "translateY(0) rotate(0deg)",
+                opacity: isInView ? 1 : index === 0 ? 1 : 0,
                 transitionDelay: `${index * 200}ms`,
-                zIndex: posts.length - index
+                boxShadow: isInView ? `0 ${index * 2}px ${index * 3}px rgba(0,0,0,0.1)` : "none"
               }}
             >
               <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
