@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar, MapPin, Briefcase, Award } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Sample data for opportunities
 const opportunities = [
@@ -51,9 +52,11 @@ const OpportunitiesSection = () => {
               Find programs, internships, competitions, and more to help you grow and explore your interests.
             </p>
           </div>
-          <Button variant="outline" className="mt-4 md:mt-0 gap-2 self-start md:self-auto">
-            Explore All <ArrowRight className="h-4 w-4" />
-          </Button>
+          <Link to="/opportunities">
+            <Button variant="outline" className="mt-4 md:mt-0 gap-2 self-start md:self-auto">
+              Explore All <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
