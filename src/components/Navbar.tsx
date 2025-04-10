@@ -1,11 +1,17 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
+
+// Mock authentication state - in a real app, this would come from your auth provider
+const isAuthenticated = false; // Set to false initially to show login button
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [authenticated, setAuthenticated] = useState(isAuthenticated);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setMounted(true);
@@ -23,6 +29,32 @@ const Navbar = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  const handleLogin = () => {
+    // Mock login process
+    setAuthenticated(true);
+    
+    toast({
+      title: "Login Successful",
+      description: "Welcome back to Outsmash!",
+    });
+    
+    // Redirect to dashboard after successful login
+    navigate("/dashboard");
+  };
+
+  const handleLogout = () => {
+    // Mock logout process
+    setAuthenticated(false);
+    
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out successfully.",
+    });
+    
+    // Redirect to home page after logout
+    navigate("/");
+  };
 
   return (
     <nav 
@@ -50,18 +82,41 @@ const Navbar = () => {
         </div>
 
         <div className={`flex items-center gap-2 transition-all duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
-          <Button 
-            variant="outline" 
-            className="hidden md:inline-flex ml-2 transition-all hover:bg-primary/10 hover:border-primary/50"
-          >
-            Log In
-          </Button>
-          <Button 
-            className="hidden md:inline-flex group relative overflow-hidden"
-          >
-            <span className="relative z-10">Start Smashing Your Dreams</span>
-            <span className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          </Button>
+          {authenticated ? (
+            <>
+              <Button 
+                variant="ghost"
+                className="hidden md:inline-flex"
+                onClick={() => navigate("/dashboard")}
+              >
+                Dashboard
+              </Button>
+              <Button 
+                variant="outline" 
+                className="hidden md:inline-flex ml-2 transition-all hover:bg-primary/10 hover:border-primary/50"
+                onClick={handleLogout}
+              >
+                Log Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                className="hidden md:inline-flex ml-2 transition-all hover:bg-primary/10 hover:border-primary/50"
+                onClick={handleLogin}
+              >
+                Log In
+              </Button>
+              <Button 
+                className="hidden md:inline-flex group relative overflow-hidden"
+                onClick={handleLogin}
+              >
+                <span className="relative z-10">Start Smashing Your Dreams</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </nav>
