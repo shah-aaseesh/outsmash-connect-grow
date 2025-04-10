@@ -1,12 +1,14 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, Send, Smile } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
-// Sample data for posts
 const posts = [
   {
     id: 1,
@@ -18,7 +20,17 @@ const posts = [
     },
     content: "Just finished my science fair project on renewable energy! Can't wait to present next week. #ScienceFair #RenewableEnergy",
     likes: 24,
-    comments: 5,
+    comments: [
+      {
+        id: 101,
+        author: {
+          name: "Maya Patel",
+          avatar: "https://i.pravatar.cc/150?img=5"
+        },
+        content: "That's amazing! What renewable energy source did you focus on?",
+        timeAgo: "1h"
+      }
+    ],
     timeAgo: "2h",
     color: "primary" // First card color
   },
@@ -32,7 +44,17 @@ const posts = [
     },
     content: "Started volunteering at the local animal shelter today. Such an amazing experience working with these beautiful creatures! Looking for more volunteer opportunities in environmental conservation. Any suggestions? #Volunteering #AnimalLover",
     likes: 38,
-    comments: 12,
+    comments: [
+      {
+        id: 201,
+        author: {
+          name: "Jordan Lee",
+          avatar: "https://i.pravatar.cc/150?img=8"
+        },
+        content: "I volunteer at the city botanical gardens! They have a great conservation program.",
+        timeAgo: "3h"
+      }
+    ],
     timeAgo: "5h",
     color: "accent" // Second card color
   },
@@ -46,7 +68,17 @@ const posts = [
     },
     content: "Just got accepted to the summer coding bootcamp at Tech University! So excited to dive deeper into web development. If anyone else is attending, let's connect! #CodingBootcamp #WebDev #SummerPrograms",
     likes: 45,
-    comments: 8,
+    comments: [
+      {
+        id: 301,
+        author: {
+          name: "Alex Johnson",
+          avatar: "https://i.pravatar.cc/150?img=1"
+        },
+        content: "Congrats! I'll be there too. Let's definitely meet up!",
+        timeAgo: "4h"
+      }
+    ],
     timeAgo: "1d",
     color: "secondary" // Third card color
   }
@@ -56,6 +88,9 @@ const SocialFeed = () => {
   const feedRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isInView, setIsInView] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<number[]>([]);
+  const [commentInputs, setCommentInputs] = useState<{[key: number]: string}>({});
+  const [userLikes, setUserLikes] = useState<number[]>([]);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -77,6 +112,58 @@ const SocialFeed = () => {
     };
   }, []);
 
+  const toggleComments = (postId: number) => {
+    setExpandedComments(prev => 
+      prev.includes(postId) 
+        ? prev.filter(id => id !== postId)
+        : [...prev, postId]
+    );
+  };
+
+  const handleCommentChange = (postId: number, value: string) => {
+    setCommentInputs(prev => ({
+      ...prev,
+      [postId]: value
+    }));
+  };
+
+  const handleCommentSubmit = (postId: number) => {
+    if (commentInputs[postId]?.trim()) {
+      toast({
+        title: "Comment Added",
+        description: "Your comment has been posted successfully!",
+      });
+      
+      setCommentInputs(prev => ({
+        ...prev,
+        [postId]: ""
+      }));
+    }
+  };
+
+  const toggleLike = (postId: number) => {
+    setUserLikes(prev => 
+      prev.includes(postId)
+        ? prev.filter(id => id !== postId)
+        : [...prev, postId]
+    );
+    
+    toast({
+      title: userLikes.includes(postId) ? "Post Unliked" : "Post Liked",
+      description: userLikes.includes(postId) 
+        ? "You have removed your like from this post." 
+        : "You liked a post!",
+      variant: "default",
+    });
+  };
+
+  const handleShare = () => {
+    toast({
+      title: "Share Post",
+      description: "Sharing options opened",
+    });
+  };
+
   return (
     <section ref={feedRef} className="py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -92,12 +179,14 @@ const SocialFeed = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {posts.map((post, index) => {
-              // Get color-specific classes for each card - with vibrant colors
               const colorClasses = {
                 primary: "bg-gradient-to-br from-rose-500/30 to-rose-700/30 border-rose-500/40 hover:bg-gradient-to-br hover:from-rose-500/40 hover:to-rose-700/40",
                 accent: "bg-gradient-to-br from-amber-500/30 to-amber-700/30 border-amber-500/40 hover:bg-gradient-to-br hover:from-amber-500/40 hover:to-amber-700/40",
                 secondary: "bg-gradient-to-br from-violet-500/30 to-violet-700/30 border-violet-500/40 hover:bg-gradient-to-br hover:from-violet-500/40 hover:to-violet-700/40"
               };
+              
+              const isLiked = userLikes.includes(post.id);
+              const showComments = expandedComments.includes(post.id);
               
               return (
                 <Card 
@@ -130,19 +219,101 @@ const SocialFeed = () => {
                     <p>{post.content}</p>
                   </CardContent>
                   <CardFooter className="border-t border-border pt-3 flex justify-between">
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={`${isLiked ? 'text-primary' : 'text-muted-foreground'} hover:text-primary`}
+                      onClick={() => toggleLike(post.id)}
+                    >
                       <ThumbsUp className="h-4 w-4 mr-1" />
-                      {post.likes}
+                      {post.likes + (isLiked ? 1 : 0)}
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={`${showComments ? 'text-primary' : 'text-muted-foreground'} hover:text-primary`}
+                      onClick={() => toggleComments(post.id)}
+                    >
                       <MessageCircle className="h-4 w-4 mr-1" />
-                      {post.comments}
+                      {post.comments.length}
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                      <Share2 className="h-4 w-4 mr-1" />
-                      Share
-                    </Button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-muted-foreground hover:text-primary"
+                          onClick={handleShare}
+                        >
+                          <Share2 className="h-4 w-4 mr-1" />
+                          Share
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56">
+                        <div className="grid gap-3">
+                          <div className="text-sm font-medium">Share this post</div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <Button variant="outline" size="sm" className="w-full">
+                              Copy
+                            </Button>
+                            <Button variant="outline" size="sm" className="w-full">
+                              Email
+                            </Button>
+                            <Button variant="outline" size="sm" className="w-full">
+                              Social
+                            </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </CardFooter>
+                  
+                  {showComments && (
+                    <div className="px-6 pb-4 space-y-3">
+                      <div className="text-sm font-medium">Comments</div>
+                      
+                      <div className="space-y-3">
+                        {post.comments.map(comment => (
+                          <div key={comment.id} className="flex items-start gap-2 pt-2 border-t border-border">
+                            <Avatar className="h-7 w-7">
+                              <AvatarImage src={comment.author.avatar} />
+                              <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium">{comment.author.name}</span>
+                                <span className="text-xs text-muted-foreground">• {comment.timeAgo}</span>
+                              </div>
+                              <p className="text-sm mt-1">{comment.content}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src="https://i.pravatar.cc/150?img=3" />
+                          <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 flex gap-2">
+                          <Input
+                            placeholder="Write a comment..."
+                            className="h-8 text-sm"
+                            value={commentInputs[post.id] || ''}
+                            onChange={(e) => handleCommentChange(post.id, e.target.value)}
+                          />
+                          <Button 
+                            size="sm" 
+                            className="h-8 px-2"
+                            onClick={() => handleCommentSubmit(post.id)}
+                            disabled={!commentInputs[post.id]?.trim()}
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </Card>
               );
             })}
