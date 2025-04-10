@@ -7,6 +7,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Opportunities from "./pages/Opportunities";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Network from "./pages/Network";
+import Messages from "./pages/Messages";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +32,38 @@ const App = () => (
             element={
               isAuthenticated ? 
               <Dashboard /> : 
+              <Navigate to="/" replace />
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              isAuthenticated ? 
+              <Profile /> : 
+              <Navigate to="/" replace />
+            } 
+          />
+          <Route 
+            path="/network" 
+            element={
+              isAuthenticated ? 
+              <Network /> : 
+              <Navigate to="/" replace />
+            } 
+          />
+          <Route 
+            path="/messages" 
+            element={
+              isAuthenticated ? 
+              <Messages /> : 
+              <Navigate to="/" replace />
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              isAuthenticated ? 
+              <Settings /> : 
               <Navigate to="/" replace />
             } 
           />
