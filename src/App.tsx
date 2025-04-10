@@ -12,11 +12,13 @@ import Network from "./pages/Network";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ProfileSetup from "./pages/ProfileSetup";
 
 const queryClient = new QueryClient();
 
 // Mock authentication status - in a real app, this would come from your auth provider
 const isAuthenticated = true; // This is just for demonstration
+const isProfileComplete = false; // This is to check if the user has completed their profile
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -28,10 +30,21 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/opportunities" element={<Opportunities />} />
           <Route 
+            path="/profile-setup" 
+            element={
+              isAuthenticated && !isProfileComplete ? 
+              <ProfileSetup /> : 
+              <Navigate to="/dashboard" replace />
+            } 
+          />
+          <Route 
             path="/dashboard" 
             element={
               isAuthenticated ? 
-              <Dashboard /> : 
+                isProfileComplete ? 
+                <Dashboard /> : 
+                <Navigate to="/profile-setup" replace />
+              : 
               <Navigate to="/" replace />
             } 
           />

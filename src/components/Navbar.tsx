@@ -1,17 +1,20 @@
 
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
 // Mock authentication state - in a real app, this would come from your auth provider
 const isAuthenticated = false; // Set to false initially to show login button
+const isProfileComplete = false; // Set to false initially to show profile setup flow
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [authenticated, setAuthenticated] = useState(isAuthenticated);
+  const [profileComplete, setProfileComplete] = useState(isProfileComplete);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     setMounted(true);
@@ -36,11 +39,15 @@ const Navbar = () => {
     
     toast({
       title: "Login Successful",
-      description: "Welcome back to Outsmash!",
+      description: "Welcome to Outsmash!",
     });
     
-    // Redirect to dashboard after successful login
-    navigate("/dashboard");
+    // Redirect to profile setup if not complete, otherwise to dashboard
+    if (!profileComplete) {
+      navigate("/profile-setup");
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   const handleLogout = () => {
@@ -55,6 +62,11 @@ const Navbar = () => {
     // Redirect to home page after logout
     navigate("/");
   };
+
+  // Don't show navbar on profile setup page
+  if (location.pathname === "/profile-setup") {
+    return null;
+  }
 
   return (
     <nav 
