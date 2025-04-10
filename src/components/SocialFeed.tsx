@@ -87,7 +87,7 @@ const morePosts = [
   }
 ];
 
-const SocialFeed = ({ dashboardMode = false }) => {
+const SocialFeed = ({ dashboardMode = false, profileMode = false }) => {
   const feedRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isInView, setIsInView] = useState(false);
@@ -97,7 +97,7 @@ const SocialFeed = ({ dashboardMode = false }) => {
   const [allPosts, setAllPosts] = useState(posts);
   
   useEffect(() => {
-    if (dashboardMode) {
+    if (dashboardMode || profileMode) {
       setAllPosts([...posts, ...morePosts]);
       setIsInView(true);
     } else {
@@ -121,7 +121,7 @@ const SocialFeed = ({ dashboardMode = false }) => {
         window.removeEventListener("scroll", handleScroll);
       };
     }
-  }, [dashboardMode]);
+  }, [dashboardMode, profileMode]);
 
   const toggleComments = (postId: number) => {
     setExpandedComments(prev => 
@@ -187,9 +187,9 @@ const SocialFeed = ({ dashboardMode = false }) => {
   };
 
   return (
-    <section ref={feedRef} className={dashboardMode ? "" : "py-12 md:py-20"}>
-      <div className={dashboardMode ? "" : "max-w-7xl mx-auto px-4 sm:px-6"}>
-        {!dashboardMode && (
+    <section ref={feedRef} className={(dashboardMode || profileMode) ? "" : "py-12 md:py-20"}>
+      <div className={(dashboardMode || profileMode) ? "" : "max-w-7xl mx-auto px-4 sm:px-6"}>
+        {!dashboardMode && !profileMode && (
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Connect With The Community
@@ -200,7 +200,7 @@ const SocialFeed = ({ dashboardMode = false }) => {
           </div>
         )}
 
-        <div className={dashboardMode ? "" : "max-w-6xl mx-auto"}>
+        <div className={(dashboardMode || profileMode) ? "" : "max-w-6xl mx-auto"}>
           {dashboardMode && (
             <Card className="mb-6">
               <CardContent className="p-4 pt-5">
@@ -239,7 +239,7 @@ const SocialFeed = ({ dashboardMode = false }) => {
             </Card>
           )}
           
-          <div className={`grid grid-cols-1 ${dashboardMode ? "" : "md:grid-cols-3"} gap-6`}>
+          <div className={`grid grid-cols-1 ${(dashboardMode || profileMode) ? "" : "md:grid-cols-3"} gap-6`}>
             {allPosts.map((post, index) => {
               const colorClasses = {
                 primary: "bg-gradient-to-br from-rose-500/30 to-rose-700/30 border-rose-500/40 hover:bg-gradient-to-br hover:from-rose-500/40 hover:to-rose-700/40",
