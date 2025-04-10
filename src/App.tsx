@@ -13,12 +13,86 @@ import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ProfileSetup from "./pages/ProfileSetup";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 const queryClient = new QueryClient();
 
-// Mock authentication status - in a real app, this would come from your auth provider
-const isAuthenticated = true; // This is just for demonstration
-const isProfileComplete = false; // This is to check if the user has completed their profile
+// Protected route component
+const ProtectedRoute = ({ children, requireProfile = true }: { children: JSX.Element, requireProfile?: boolean }) => {
+  const { user, loading, isProfileComplete } = useAuth();
+  
+  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  if (requireProfile && !isProfileComplete) {
+    return <Navigate to="/profile-setup" replace />;
+  }
+  
+  return children;
+};
+
+// Profile setup route - only accessible if logged in but profile not complete
+const ProfileSetupRoute = ({ children }: { children: JSX.Element }) => {
+  const { user, loading, isProfileComplete } = useAuth();
+  
+  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  if (isProfileComplete) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Index />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
+    <Route path="/opportunities" element={<Opportunities />} />
+    <Route path="/profile-setup" element={
+      <ProfileSetupRoute>
+        <ProfileSetup />
+      </ProfileSetupRoute>
+    } />
+    <Route path="/dashboard" element={
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    } />
+    <Route path="/profile" element={
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    } />
+    <Route path="/network" element={
+      <ProtectedRoute>
+        <Network />
+      </ProtectedRoute>
+    } />
+    <Route path="/messages" element={
+      <ProtectedRoute>
+        <Messages />
+      </ProtectedRoute>
+    } />
+    <Route path="/settings" element={
+      <ProtectedRoute>
+        <Settings />
+      </ProtectedRoute>
+    } />
+    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -26,63 +100,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/opportunities" element={<Opportunities />} />
-          <Route 
-            path="/profile-setup" 
-            element={
-              isAuthenticated && !isProfileComplete ? 
-              <ProfileSetup /> : 
-              <Navigate to="/dashboard" replace />
-            } 
-          />
-          <Route 
-            path="/dashboard" 
-            element={
-              isAuthenticated ? 
-                isProfileComplete ? 
-                <Dashboard /> : 
-                <Navigate to="/profile-setup" replace />
-              : 
-              <Navigate to="/" replace />
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              isAuthenticated ? 
-              <Profile /> : 
-              <Navigate to="/" replace />
-            } 
-          />
-          <Route 
-            path="/network" 
-            element={
-              isAuthenticated ? 
-              <Network /> : 
-              <Navigate to="/" replace />
-            } 
-          />
-          <Route 
-            path="/messages" 
-            element={
-              isAuthenticated ? 
-              <Messages /> : 
-              <Navigate to="/" replace />
-            } 
-          />
-          <Route 
-            path="/settings" 
-            element={
-              isAuthenticated ? 
-              <Settings /> : 
-              <Navigate to="/" replace />
-            } 
-          />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

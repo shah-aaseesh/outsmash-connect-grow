@@ -26,6 +26,8 @@ import ProfileSetupPhotos from "@/components/ProfileSetupPhotos";
 import ProfileSetupInterests from "@/components/ProfileSetupInterests";
 import ProfileSetupPreferences from "@/components/ProfileSetupPreferences";
 import ProfileSetupBio from "@/components/ProfileSetupBio";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const steps = [
   { id: "basics", label: "Basics", icon: User },
@@ -67,7 +69,9 @@ type ProfileFormValues = z.infer<typeof formSchema>;
 
 const ProfileSetup = () => {
   const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { user, setProfileComplete } = useAuth();
   
   // Form
   const form = useForm<ProfileFormValues>({
@@ -119,20 +123,96 @@ const ProfileSetup = () => {
   };
   
   const onSubmit = async (data: ProfileFormValues) => {
-    console.log("Profile data:", data);
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to complete your profile",
+      });
+      return;
+    }
     
-    // Here you would typically submit to your API
-    // For now, we'll just show a success toast and redirect
+    setIsSubmitting(true);
     
-    toast({
-      title: "Profile created!",
-      description: "Your profile has been successfully set up.",
-    });
-    
-    // In a real app, you would store whether the profile is complete
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1500);
+    try {
+      // 1. Save base profile data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          name: data.name,
+          gender: data.gender,
+          birthdate: data.birthdate.toISOString(),
+          location: data.location,
+          bio: data.bio,
+          prompt1: data.prompt1,
+          prompt2: data.prompt2,
+          is_profile_complete: true,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (profileError) throw profileError;
+      
+      // 2. Save photos
+      const photoPromises = data.photos.map((photoUrl, index) => {
+        return supabase
+          .from('photos')
+          .upsert({
+            profile_id: user.id,
+            url: photoUrl,
+            is_primary: index === 0,
+          });
+      });
+      
+      await Promise.all(photoPromises);
+      
+      // 3. Save preferences
+      const { error: prefError } = await supabase
+        .from('preferences')
+        .upsert({
+          profile_id: user.id,
+          looking_for: data.lookingFor,
+          min_age: data.ageRange.min,
+          max_age: data.ageRange.max,
+          distance: data.distance
+        });
+      
+      if (prefError) throw prefError;
+      
+      // 4. Save interests
+      const interestPromises = data.interests.map(interest => {
+        return supabase
+          .from('profile_interests')
+          .upsert({
+            profile_id: user.id,
+            interest_id: interest
+          });
+      });
+      
+      await Promise.all(interestPromises);
+      
+      // Update local profile completion status
+      setProfileComplete(true);
+      
+      toast({
+        title: "Profile created!",
+        description: "Your profile has been successfully set up.",
+      });
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast({
+        variant: "destructive",
+        title: "Error creating profile",
+        description: error.message || "There was an error saving your profile",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   // Render the current step
@@ -201,7 +281,7 @@ const ProfileSetup = () => {
                     type="button"
                     variant="outline"
                     onClick={prevStep}
-                    disabled={step === 0}
+                    disabled={step === 0 || isSubmitting}
                   >
                     Previous
                   </Button>
@@ -209,8 +289,13 @@ const ProfileSetup = () => {
                   <Button 
                     type="button"
                     onClick={nextStep}
+                    disabled={isSubmitting}
                   >
-                    {isLastStep ? "Complete Profile" : "Continue"}
+                    {isSubmitting 
+                      ? "Saving..." 
+                      : isLastStep 
+                        ? "Complete Profile" 
+                        : "Continue"}
                   </Button>
                 </div>
               </form>

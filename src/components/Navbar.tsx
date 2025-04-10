@@ -3,18 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-
-// Mock authentication state - in a real app, this would come from your auth provider
-const isAuthenticated = false; // Set to false initially to show login button
-const isProfileComplete = false; // Set to false initially to show profile setup flow
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [authenticated, setAuthenticated] = useState(isAuthenticated);
-  const [profileComplete, setProfileComplete] = useState(isProfileComplete);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isProfileComplete, signOut } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -34,33 +30,11 @@ const Navbar = () => {
   }, []);
 
   const handleLogin = () => {
-    // Mock login process
-    setAuthenticated(true);
-    
-    toast({
-      title: "Login Successful",
-      description: "Welcome to Outsmash!",
-    });
-    
-    // Redirect to profile setup if not complete, otherwise to dashboard
-    if (!profileComplete) {
-      navigate("/profile-setup");
-    } else {
-      navigate("/dashboard");
-    }
+    navigate("/login");
   };
 
-  const handleLogout = () => {
-    // Mock logout process
-    setAuthenticated(false);
-    
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully.",
-    });
-    
-    // Redirect to home page after logout
-    navigate("/");
+  const handleLogout = async () => {
+    await signOut();
   };
 
   // Don't show navbar on profile setup page
@@ -94,7 +68,7 @@ const Navbar = () => {
         </div>
 
         <div className={`flex items-center gap-2 transition-all duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
-          {authenticated ? (
+          {user ? (
             <>
               <Button 
                 variant="ghost"
@@ -122,7 +96,7 @@ const Navbar = () => {
               </Button>
               <Button 
                 className="hidden md:inline-flex group relative overflow-hidden"
-                onClick={handleLogin}
+                onClick={() => navigate("/register")}
               >
                 <span className="relative z-10">Start Smashing Your Dreams</span>
                 <span className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
