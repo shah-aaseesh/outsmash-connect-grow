@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { 
-  Calendar as CalendarIcon,
+  CalendarIcon,
   Camera,
   Heart,
   MapPin,

@@ -114,6 +114,7 @@ const ProfileSetupBasics = ({ form }: { form: any }) => {
                     date > new Date() || date < new Date("1900-01-01")
                   }
                   initialFocus
+                  className={cn("p-3 pointer-events-auto")}
                 />
               </PopoverContent>
             </Popover>
