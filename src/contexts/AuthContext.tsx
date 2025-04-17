@@ -121,13 +121,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Sign in function
   const signIn = async (email: string, password: string, options?: SignInOptions) => {
     try {
+      // Create auth options object
+      const authOptions: Record<string, any> = {};
+      
+      // Add redirectTo if provided
+      if (options?.redirectTo) {
+        authOptions.redirectTo = options.redirectTo;
+      }
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          redirectTo: options?.redirectTo
-        }
-      });
+      }, authOptions);
       
       if (error) throw error;
       
