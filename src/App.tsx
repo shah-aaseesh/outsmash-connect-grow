@@ -16,6 +16,7 @@ import ProfileSetup from "./pages/ProfileSetup";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const AppRoutes = () => (
     <Route path="/" element={<Index />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
+    <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/opportunities" element={<Opportunities />} />
     <Route path="/profile-setup" element={
       <ProfileSetupRoute>
