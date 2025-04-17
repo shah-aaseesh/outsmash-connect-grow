@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { 
-  Calendar,
+  Calendar as CalendarIcon,
   Camera,
   Heart,
   MapPin,
@@ -16,10 +16,16 @@ import {
   Smile,
   User
 } from "lucide-react";
+import { format } from "date-fns";
 
-import { Form } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import ProfileSetupBasics from "@/components/ProfileSetupBasics";
 import ProfileSetupPhotos from "@/components/ProfileSetupPhotos";
 import ProfileSetupInterests from "@/components/ProfileSetupInterests";

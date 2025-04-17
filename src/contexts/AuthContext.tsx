@@ -123,16 +123,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single();
         
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!"
+      });
+      
       if (profileData?.is_profile_complete) {
         navigate('/dashboard');
       } else {
         navigate('/profile-setup');
       }
-      
-      toast({
-        title: "Login Successful",
-        description: "Welcome back!"
-      });
     } catch (error: any) {
       toast({
         variant: "destructive",
