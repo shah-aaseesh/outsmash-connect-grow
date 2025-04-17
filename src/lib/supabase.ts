@@ -21,10 +21,12 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      redirectTo: `${siteUrl}/auth/callback`,
     },
   }
 );
+
+// This defines the redirect URL for auth operations
+export const authRedirectUrl = `${siteUrl}/auth/callback`;
 
 // Function to get email template content
 export const getEmailTemplate = () => {

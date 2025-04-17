@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
+import { authRedirectUrl } from "@/lib/supabase";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -38,7 +39,8 @@ const Login = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      await signIn(data.email, data.password);
+      // Pass the redirectTo URL to the signIn method
+      await signIn(data.email, data.password, { redirectTo: authRedirectUrl });
       // Auth context will handle redirect based on profile completion
     } catch (error) {
       console.error("Login error:", error);
