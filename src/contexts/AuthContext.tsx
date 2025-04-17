@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -121,18 +120,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Sign in function
   const signIn = async (email: string, password: string, options?: SignInOptions) => {
     try {
-      // Create auth options object
-      const authOptions: Record<string, any> = {};
-      
-      // Add redirectTo if provided
-      if (options?.redirectTo) {
-        authOptions.redirectTo = options.redirectTo;
-      }
-      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      }, authOptions);
+        ...(options?.redirectTo ? { options: { redirectTo: options.redirectTo } } : {})
+      });
       
       if (error) throw error;
       
