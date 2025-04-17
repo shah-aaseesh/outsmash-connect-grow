@@ -5,6 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
+// Define the options type for signIn
+type SignInOptions = {
+  redirectTo?: string;
+};
+
 // Define the context type
 type AuthContextType = {
   session: Session | null;
@@ -12,7 +17,7 @@ type AuthContextType = {
   loading: boolean;
   isProfileComplete: boolean;
   signUp: (email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, options?: SignInOptions) => Promise<void>;
   signOut: () => Promise<void>;
   setProfileComplete: (complete: boolean) => void;
 };
@@ -114,11 +119,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Sign in function
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, options?: SignInOptions) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
+        options: {
+          redirectTo: options?.redirectTo
+        }
       });
       
       if (error) throw error;
