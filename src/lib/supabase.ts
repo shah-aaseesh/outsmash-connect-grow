@@ -21,7 +21,6 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      // This ensures redirects go to your application's URL, not localhost
       redirectTo: `${siteUrl}/auth/callback`,
     },
   }
