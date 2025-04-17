@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -30,36 +29,29 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
 const steps = [
-  { id: "basics", label: "Basics", icon: User },
+  { id: "name", label: "Name", icon: User },
+  { id: "birthdate", label: "Birth Date", icon: Calendar },
+  { id: "gender", label: "Gender", icon: User },
+  { id: "location", label: "Location", icon: MapPin },
   { id: "photos", label: "Photos", icon: Camera },
   { id: "interests", label: "Interests", icon: Heart },
   { id: "preferences", label: "Preferences", icon: Settings },
   { id: "bio", label: "About You", icon: Mic }
 ];
 
-// Main form schema - combine all step schemas
 const formSchema = z.object({
-  // Basic info
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   gender: z.string().min(1, { message: "Please select your gender" }),
   birthdate: z.date({ required_error: "Please select your birth date" }),
   location: z.string().min(1, { message: "Please enter your location" }),
-  
-  // Photos - array of photo URLs or files
   photos: z.array(z.string()).min(1, { message: "Please upload at least one photo" }),
-  
-  // Interests
   interests: z.array(z.string()).min(1, { message: "Please select at least one interest" }),
-  
-  // Preferences
   lookingFor: z.array(z.string()).min(1, { message: "Please select what you're looking for" }),
   ageRange: z.object({
     min: z.number().min(18),
     max: z.number().min(18)
   }),
   distance: z.number().min(1),
-  
-  // Bio
   bio: z.string().min(10, { message: "Please write a bit more about yourself" }).max(500),
   prompt1: z.string().optional(),
   prompt2: z.string().optional()
@@ -73,7 +65,6 @@ const ProfileSetup = () => {
   const navigate = useNavigate();
   const { user, setProfileComplete } = useAuth();
   
-  // Form
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -96,12 +87,20 @@ const ProfileSetup = () => {
     const fields = getFieldsForStep(step);
     const output = await form.trigger(fields as any);
     
-    if (!output) return;
+    if (!output) {
+      toast({
+        variant: "destructive",
+        title: "Please fill in all required fields",
+        description: "Make sure to complete the current step before continuing"
+      });
+      return;
+    }
     
     if (isLastStep) {
       await onSubmit(form.getValues());
     } else {
       setStep(step + 1);
+      window.scrollTo(0, 0);
     }
   };
   
@@ -113,11 +112,14 @@ const ProfileSetup = () => {
   
   const getFieldsForStep = (stepIndex: number): string[] => {
     switch (stepIndex) {
-      case 0: return ["name", "gender", "birthdate", "location"];
-      case 1: return ["photos"];
-      case 2: return ["interests"];
-      case 3: return ["lookingFor", "ageRange", "distance"];
-      case 4: return ["bio", "prompt1", "prompt2"];
+      case 0: return ["name"];
+      case 1: return ["birthdate"];
+      case 2: return ["gender"];
+      case 3: return ["location"];
+      case 4: return ["photos"];
+      case 5: return ["interests"];
+      case 6: return ["lookingFor", "ageRange", "distance"];
+      case 7: return ["bio", "prompt1", "prompt2"];
       default: return [];
     }
   };
@@ -135,7 +137,6 @@ const ProfileSetup = () => {
     setIsSubmitting(true);
     
     try {
-      // 1. Save base profile data
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -153,7 +154,6 @@ const ProfileSetup = () => {
       
       if (profileError) throw profileError;
       
-      // 2. Save photos
       const photoPromises = data.photos.map((photoUrl, index) => {
         return supabase
           .from('photos')
@@ -166,7 +166,6 @@ const ProfileSetup = () => {
       
       await Promise.all(photoPromises);
       
-      // 3. Save preferences
       const { error: prefError } = await supabase
         .from('preferences')
         .upsert({
@@ -179,7 +178,6 @@ const ProfileSetup = () => {
       
       if (prefError) throw prefError;
       
-      // 4. Save interests
       const interestPromises = data.interests.map(interest => {
         return supabase
           .from('profile_interests')
@@ -191,7 +189,6 @@ const ProfileSetup = () => {
       
       await Promise.all(interestPromises);
       
-      // Update local profile completion status
       setProfileComplete(true);
       
       toast({
@@ -199,7 +196,6 @@ const ProfileSetup = () => {
         description: "Your profile has been successfully set up.",
       });
       
-      // Redirect to dashboard
       setTimeout(() => {
         navigate("/dashboard");
       }, 1500);
@@ -215,18 +211,20 @@ const ProfileSetup = () => {
     }
   };
   
-  // Render the current step
   const renderStep = () => {
     switch (step) {
-      case 0: return <ProfileSetupBasics form={form} />;
-      case 1: return <ProfileSetupPhotos form={form} />;
-      case 2: return <ProfileSetupInterests form={form} />;
-      case 3: return <ProfileSetupPreferences form={form} />;
-      case 4: return <ProfileSetupBio form={form} />;
+      case 0: return <NameStep form={form} />;
+      case 1: return <BirthDateStep form={form} />;
+      case 2: return <GenderStep form={form} />;
+      case 3: return <LocationStep form={form} />;
+      case 4: return <ProfileSetupPhotos form={form} />;
+      case 5: return <ProfileSetupInterests form={form} />;
+      case 6: return <ProfileSetupPreferences form={form} />;
+      case 7: return <ProfileSetupBio form={form} />;
       default: return null;
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-3xl">
@@ -237,7 +235,6 @@ const ProfileSetup = () => {
           </p>
         </div>
         
-        {/* Progress Steps */}
         <div className="flex items-center justify-between mb-6 px-2">
           {steps.map((s, i) => (
             <div 
@@ -269,7 +266,6 @@ const ProfileSetup = () => {
           ))}
         </div>
         
-        {/* Form Card */}
         <Card className="border-primary/20 shadow-lg">
           <CardContent className="p-6 space-y-4">
             <Form {...form}>
@@ -307,6 +303,163 @@ const ProfileSetup = () => {
           <p>Step {step + 1} of {steps.length}</p>
         </div>
       </div>
+    </div>
+  );
+};
+
+const NameStep = ({ form }: { form: any }) => {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold">What's your name?</h2>
+        <p className="text-muted-foreground text-sm">Let others know what to call you</p>
+      </div>
+      
+      <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Name</FormLabel>
+            <FormControl>
+              <Input placeholder="Your name" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+};
+
+const BirthDateStep = ({ form }: { form: any }) => {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold">When were you born?</h2>
+        <p className="text-muted-foreground text-sm">Your age helps us match you appropriately</p>
+      </div>
+      
+      <FormField
+        control={form.control}
+        name="birthdate"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>Date of Birth</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground"
+                    )}
+                  >
+                    {field.value ? (
+                      format(field.value, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+};
+
+const GenderStep = ({ form }: { form: any }) => {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold">How do you identify?</h2>
+        <p className="text-muted-foreground text-sm">Select your gender identity</p>
+      </div>
+      
+      <FormField
+        control={form.control}
+        name="gender"
+        render={({ field }) => (
+          <FormItem className="space-y-3">
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                className="flex flex-col space-y-1"
+              >
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="woman" />
+                  </FormControl>
+                  <FormLabel className="font-normal">Woman</FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="man" />
+                  </FormControl>
+                  <FormLabel className="font-normal">Man</FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="non-binary" />
+                  </FormControl>
+                  <FormLabel className="font-normal">Non-binary</FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="other" />
+                  </FormControl>
+                  <FormLabel className="font-normal">Other</FormLabel>
+                </FormItem>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+};
+
+const LocationStep = ({ form }: { form: any }) => {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold">Where are you located?</h2>
+        <p className="text-muted-foreground text-sm">Help us find matches near you</p>
+      </div>
+      
+      <FormField
+        control={form.control}
+        name="location"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Location</FormLabel>
+            <FormControl>
+              <Input placeholder="City, State" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 };

@@ -4,12 +4,10 @@ import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
-// Define the options type for signIn
 type SignInOptions = {
   redirectTo?: string;
 };
 
-// Define the context type
 type AuthContextType = {
   session: Session | null;
   user: User | null;
@@ -21,7 +19,6 @@ type AuthContextType = {
   setProfileComplete: (complete: boolean) => void;
 };
 
-// Create the context with default values
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
@@ -33,10 +30,8 @@ const AuthContext = createContext<AuthContextType>({
   setProfileComplete: () => {},
 });
 
-// Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
-// Auth provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -45,7 +40,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -57,7 +51,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -76,7 +69,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [navigate]);
 
-  // Check if user has completed their profile
   const checkProfileCompletion = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -93,7 +85,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign up function
   const signUp = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signUp({
@@ -117,7 +108,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign in function
   const signIn = async (email: string, password: string, options?: SignInOptions) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -125,11 +115,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password
       });
       
-      if (!error && options?.redirectTo) {
-        navigate(options.redirectTo);
-      }
-      
       if (error) throw error;
+      
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('is_profile_complete')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+        
+      if (profileData?.is_profile_complete) {
+        navigate('/dashboard');
+      } else {
+        navigate('/profile-setup');
+      }
       
       toast({
         title: "Login Successful",
@@ -145,7 +143,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign out function
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -163,7 +160,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Update profile completion status
   const setProfileComplete = (complete: boolean) => {
     setIsProfileComplete(complete);
   };
