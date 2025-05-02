@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -241,7 +242,7 @@ const ProfileSetup = () => {
           </p>
         </div>
         
-        <div className="flex items-center justify-between mb-6 px-2">
+        <div className="flex items-center justify-between mb-6 px-2 relative">
           {steps.map((s, i) => (
             <div 
               key={s.id}
@@ -272,7 +273,7 @@ const ProfileSetup = () => {
           ))}
         </div>
         
-        <Card className="border-primary/20 shadow-lg">
+        <Card className="border-primary/20 shadow-lg relative">
           <CardContent className="p-6 space-y-4">
             <Form {...form}>
               <form>
@@ -371,7 +372,7 @@ const BirthDateStep = ({ form }: { form: any }) => {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 z-[100]" align="start">
                 <Calendar
                   mode="single"
                   selected={field.value}
@@ -380,7 +381,7 @@ const BirthDateStep = ({ form }: { form: any }) => {
                     date > new Date() || date < new Date("1900-01-01")
                   }
                   initialFocus
-                  className={cn("p-3 pointer-events-auto")}
+                  className="pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
