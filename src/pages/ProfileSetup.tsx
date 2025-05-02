@@ -35,7 +35,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const steps = [
   { id: "name", label: "Name", icon: User },
-  { id: "birthdate", label: "Birth Date", icon: Calendar },
+  { id: "birthdate", label: "Birth Date", icon: CalendarIcon },
   { id: "gender", label: "Gender", icon: User },
   { id: "location", label: "Location", icon: MapPin },
   { id: "photos", label: "Photos", icon: Camera },
