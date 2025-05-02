@@ -22,7 +22,6 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -339,6 +338,21 @@ const NameStep = ({ form }: { form: any }) => {
 };
 
 const BirthDateStep = ({ form }: { form: any }) => {
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value) {
+      const date = new Date(e.target.value);
+      form.setValue('birthdate', date);
+    }
+  };
+  
+  const formatDateForInput = (date: Date | undefined) => {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
@@ -352,37 +366,16 @@ const BirthDateStep = ({ form }: { form: any }) => {
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Date of Birth</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full pl-3 text-left font-normal",
-                      !field.value && "text-muted-foreground"
-                    )}
-                  >
-                    {field.value ? (
-                      format(field.value, "PPP")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={field.value}
-                  onSelect={field.onChange}
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <FormControl>
+              <Input 
+                type="date"
+                value={formatDateForInput(field.value)}
+                onChange={handleDateChange}
+                max={formatDateForInput(new Date())}
+                min="1900-01-01"
+                className="w-full"
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
