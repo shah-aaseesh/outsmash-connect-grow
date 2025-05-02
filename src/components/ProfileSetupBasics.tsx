@@ -105,7 +105,7 @@ const ProfileSetupBasics = ({ form }: { form: any }) => {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[100]" align="start">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={field.value}
@@ -114,7 +114,6 @@ const ProfileSetupBasics = ({ form }: { form: any }) => {
                     date > new Date() || date < new Date("1900-01-01")
                   }
                   initialFocus
-                  className="pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
