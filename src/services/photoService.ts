@@ -5,6 +5,19 @@ import { v4 as uuidv4 } from "uuid";
 // Upload a photo to Supabase storage
 export const uploadPhoto = async (file: File, userId: string): Promise<string> => {
   try {
+    // Validate file type
+    const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!acceptedTypes.includes(file.type)) {
+      throw new Error(`Unsupported file type: ${file.type}`);
+    }
+    
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB (max 5MB)`);
+    }
+    
+    // Create a unique file name
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `photos/${fileName}`;
@@ -12,7 +25,10 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
     // Upload to Supabase storage
     const { error: uploadError, data } = await supabase.storage
       .from('user-photos')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (uploadError) throw uploadError;
     
