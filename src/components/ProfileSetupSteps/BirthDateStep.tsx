@@ -3,13 +3,22 @@ import { useState } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const BirthDateStep = ({ form }: { form: any }) => {
-  const [dateStep, setDateStep] = useState<'year' | 'month' | 'date'>('year');
+  const [dateStep, setDateStep] = useState<'year' | 'month' | 'date' | 'complete'>('year');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+
+  // Initialize from existing form value if available
+  useState(() => {
+    const currentValue = form.getValues('birthdate');
+    if (currentValue) {
+      setSelectedYear(currentValue.getFullYear());
+      setSelectedMonth(currentValue.getMonth());
+      setDateStep('complete');
+    }
+  });
 
   // Generate year options (1900 to current year)
   const currentYear = new Date().getFullYear();
@@ -50,11 +59,8 @@ const BirthDateStep = ({ form }: { form: any }) => {
     if (selectedYear !== null && selectedMonth !== null) {
       const selectedDate = new Date(selectedYear, selectedMonth, parseInt(day));
       form.setValue('birthdate', selectedDate);
-      
-      // Reset the step for a nice visual confirmation
-      setTimeout(() => {
-        setDateStep('year');
-      }, 500);
+      // Mark as complete instead of resetting
+      setDateStep('complete');
     }
   };
 
@@ -63,10 +69,48 @@ const BirthDateStep = ({ form }: { form: any }) => {
       setDateStep('month');
     } else if (dateStep === 'month') {
       setDateStep('year');
+    } else if (dateStep === 'complete') {
+      // Allow changing the date after it's set
+      const currentValue = form.getValues('birthdate');
+      if (currentValue) {
+        setSelectedYear(currentValue.getFullYear());
+        setSelectedMonth(currentValue.getMonth());
+        setDateStep('year');
+      }
     }
   };
 
   const renderDatePicker = () => {
+    // If we're in complete state and have a selected date, show confirmation
+    if (dateStep === 'complete') {
+      const birthdate = form.getValues('birthdate');
+      if (birthdate) {
+        return (
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-center">Selected Date</h3>
+            <div className="flex justify-center">
+              <div className="bg-primary/10 rounded-md p-3 text-center">
+                <p className="text-lg font-medium">{format(birthdate, "MMMM d, yyyy")}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {Math.floor((new Date().getTime() - birthdate.getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years old
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleBack} 
+                className="mt-2"
+              >
+                Change Date
+              </Button>
+            </div>
+          </div>
+        );
+      }
+    }
+
     switch (dateStep) {
       case 'year':
         return (
@@ -146,6 +190,8 @@ const BirthDateStep = ({ form }: { form: any }) => {
           );
         }
         return null;
+      default:
+        return null;
     }
   };
 
@@ -170,7 +216,7 @@ const BirthDateStep = ({ form }: { form: any }) => {
                     "w-full pl-3 text-left font-normal justify-start",
                     !field.value && "text-muted-foreground"
                   )}
-                  onClick={() => setDateStep('year')}
+                  onClick={() => setDateStep(field.value ? 'complete' : 'year')}
                   type="button"
                 >
                   {field.value ? (
