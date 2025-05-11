@@ -1,20 +1,24 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Image } from "lucide-react";
+import { Upload, X, Image, AlertCircle } from "lucide-react";
 import { uploadPhoto } from "@/services/photoService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const MAX_PHOTOS = 6;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const ProfileSetupPhotos = ({ form }: { form: any }) => {
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const { user } = useAuth();
   
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
+    
     if (!user) {
       toast({
         variant: "destructive",
@@ -30,6 +34,7 @@ const ProfileSetupPhotos = ({ form }: { form: any }) => {
     const currentPhotos = form.getValues("photos") || [];
     
     if (currentPhotos.length + files.length > MAX_PHOTOS) {
+      setUploadError(`You can only upload a maximum of ${MAX_PHOTOS} photos`);
       toast({
         variant: "destructive",
         title: "Too many photos",
@@ -71,11 +76,23 @@ const ProfileSetupPhotos = ({ form }: { form: any }) => {
     setUploading(true);
     
     try {
-      const uploadPromises = validFiles.map(file => uploadPhoto(file, user.id));
+      const uploadPromises = validFiles.map(file => {
+        return uploadPhoto(file, user.id)
+          .catch(error => {
+            console.error(`Error uploading ${file.name}:`, error);
+            toast({
+              variant: "destructive",
+              title: `Error uploading ${file.name}`,
+              description: error.message || "Upload failed"
+            });
+            return null;
+          });
+      });
+      
       const uploadedUrls = await Promise.all(uploadPromises);
       
-      // Filter out any failed uploads (undefined values)
-      const successfulUploads = uploadedUrls.filter(url => url);
+      // Filter out any failed uploads (null values)
+      const successfulUploads = uploadedUrls.filter(url => url) as string[];
       
       if (successfulUploads.length > 0) {
         form.setValue("photos", [...currentPhotos, ...successfulUploads], { shouldValidate: true });
@@ -84,27 +101,35 @@ const ProfileSetupPhotos = ({ form }: { form: any }) => {
           title: "Upload successful",
           description: `${successfulUploads.length} photo${successfulUploads.length > 1 ? 's' : ''} uploaded successfully`,
         });
+      } else {
+        setUploadError("All uploads failed. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Photo upload error:", error);
+      setUploadError(error.message || "There was an error uploading your photos");
       toast({
         variant: "destructive",
         title: "Upload failed",
-        description: "There was an error uploading your photos",
+        description: error.message || "There was an error uploading your photos",
       });
     } finally {
       setUploading(false);
       // Reset the file input
       event.target.value = '';
     }
-  };
+  }, [user, form, toast]);
   
-  const removePhoto = (index: number) => {
+  const removePhoto = useCallback((index: number) => {
     const photos = form.getValues("photos");
     const newPhotos = [...photos];
     newPhotos.splice(index, 1);
     form.setValue("photos", newPhotos, { shouldValidate: true });
-  };
+    
+    toast({
+      title: "Photo removed",
+      description: "Photo has been removed from your profile",
+    });
+  }, [form, toast]);
 
   return (
     <div className="space-y-6">
@@ -115,6 +140,13 @@ const ProfileSetupPhotos = ({ form }: { form: any }) => {
         </p>
       </div>
       
+      {uploadError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{uploadError}</AlertDescription>
+        </Alert>
+      )}
+      
       <FormField
         control={form.control}
         name="photos"
@@ -124,13 +156,22 @@ const ProfileSetupPhotos = ({ form }: { form: any }) => {
             <div className="grid grid-cols-3 gap-4 mb-4">
               {Array.isArray(field.value) && field.value.map((url: string, index: number) => (
                 <div 
-                  key={index} 
+                  key={`photo-${index}-${url.substring(url.lastIndexOf('/') + 1, url.lastIndexOf('.'))}`}
                   className="relative aspect-square rounded-md overflow-hidden group border border-border"
                 >
                   <img 
                     src={url} 
                     alt={`User photo ${index + 1}`} 
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Handle image load errors
+                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Image+Error';
+                      toast({
+                        variant: "destructive",
+                        title: "Image Error",
+                        description: "Failed to load image. It may have been deleted or is unavailable."
+                      });
+                    }}
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button
