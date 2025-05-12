@@ -40,7 +40,7 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
     const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
     if (!bucketExists) {
       console.error(`Bucket '${bucketName}' does not exist`);
-      throw new Error(`Storage bucket '${bucketName}' not found. Please check your Supabase storage configuration.`);
+      throw new Error(`Storage bucket '${bucketName}' not found. Please create this bucket in your Supabase dashboard.`);
     }
     
     // Upload to Supabase storage with improved error handling
@@ -54,13 +54,20 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
     if (uploadError) {
       console.error("Supabase upload error:", uploadError);
       
-      // Check for specific error types and provide better error messages
+      // Provide more specific RLS-related error messages
       if (uploadError.message.includes("storage quota")) {
         throw new Error("Storage quota exceeded. Please delete some files first.");
       }
       
-      if (uploadError.message.includes("permission")) {
-        throw new Error("You don't have permission to upload files. Please check your Supabase RLS policies and make sure the bucket is set to public.");
+      if (uploadError.message.includes("permission") || uploadError.message.includes("not authorized")) {
+        throw new Error(`Permission denied: Your RLS policies might not be configured correctly. 
+          Please ensure you've setup these policies in your Supabase dashboard:
+          
+          1. Go to Storage → Policies
+          2. For "user-photos" bucket, add these policies:
+            - Upload policy: auth.uid() = (storage.foldername)[1]::uuid
+            - Select policy: true (for public access) OR auth.uid() = (storage.foldername)[1]::uuid (for private)
+            - Delete policy: auth.uid() = (storage.foldername)[1]::uuid`);
       }
       
       throw new Error(`Upload failed: ${uploadError.message}`);
@@ -113,6 +120,14 @@ export const deletePhoto = async (url: string): Promise<void> => {
       
     if (error) {
       console.error("Supabase delete error:", error);
+      
+      // Provide more specific RLS-related error messages for deletion
+      if (error.message.includes("permission") || error.message.includes("not authorized")) {
+        throw new Error(`Permission denied: You might not have the correct RLS policies for deletion.
+          Make sure you have this policy for the "user-photos" bucket:
+          - Delete policy: auth.uid() = (storage.foldername)[1]::uuid`);
+      }
+      
       throw new Error(`Failed to delete photo: ${error.message}`);
     }
   } catch (error) {
