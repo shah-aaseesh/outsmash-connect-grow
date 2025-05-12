@@ -23,10 +23,10 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `photos/${fileName}`;
     
-    // Get default bucket name from environment if available, or use default
-    const defaultBucketName = 'user-photos';
+    // Get default bucket name
+    const bucketName = 'user-photos';
     
-    // Check if any buckets exist
+    // Check if bucket exists
     const { data: buckets, error: bucketsError } = await supabase
       .storage
       .listBuckets();
@@ -36,46 +36,15 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
       throw new Error(`Storage error: ${bucketsError.message}`);
     }
     
-    // If no buckets exist at all, we need to create one or show an error
-    if (!buckets || buckets.length === 0) {
-      try {
-        // Try to create the default bucket
-        const { error: createBucketError } = await supabase
-          .storage
-          .createBucket(defaultBucketName, { 
-            public: true,
-            fileSizeLimit: 5242880 // 5MB in bytes
-          });
-          
-        if (createBucketError) {
-          console.error("Failed to create storage bucket:", createBucketError);
-          
-          // Special handling for permissions issues
-          if (createBucketError.message.includes("permission")) {
-            throw new Error("Your account doesn't have permission to create storage buckets. Please set up storage in your Supabase dashboard first.");
-          }
-          
-          throw new Error("Unable to create storage bucket. Please set up storage in your Supabase dashboard first.");
-        }
-      } catch (err: any) {
-        console.error("Error creating bucket:", err);
-        throw new Error("No storage buckets available. Please set up storage in your Supabase dashboard first.");
-      }
+    // Verify that our expected bucket exists
+    const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
+    if (!bucketExists) {
+      console.error(`Bucket '${bucketName}' does not exist`);
+      throw new Error(`Storage bucket '${bucketName}' not found. Please check your Supabase storage configuration.`);
     }
     
-    // At this point, either we created a bucket or there are existing buckets
-    // Try to find our preferred bucket first
-    let bucketName = defaultBucketName;
-    const bucketExists = buckets?.some(bucket => bucket.name === defaultBucketName);
-    
-    if (!bucketExists && buckets && buckets.length > 0) {
-      // If our preferred bucket doesn't exist, use the first available one
-      bucketName = buckets[0].name;
-      console.log(`Using existing bucket: ${bucketName}`);
-    }
-    
-    // Upload to Supabase storage
-    const { error: uploadError } = await supabase.storage
+    // Upload to Supabase storage with improved error handling
+    const { data, error: uploadError } = await supabase.storage
       .from(bucketName)
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -85,17 +54,13 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
     if (uploadError) {
       console.error("Supabase upload error:", uploadError);
       
-      if (uploadError.message.includes("The resource was not found")) {
-        throw new Error(`Storage bucket '${bucketName}' not found. Please check your Supabase storage configuration.`);
-      }
-      
       // Check for specific error types and provide better error messages
       if (uploadError.message.includes("storage quota")) {
         throw new Error("Storage quota exceeded. Please delete some files first.");
       }
       
       if (uploadError.message.includes("permission")) {
-        throw new Error("You don't have permission to upload files. Please check your Supabase RLS policies.");
+        throw new Error("You don't have permission to upload files. Please check your Supabase RLS policies and make sure the bucket is set to public.");
       }
       
       throw new Error(`Upload failed: ${uploadError.message}`);
@@ -116,32 +81,8 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
 // Delete a photo from Supabase storage
 export const deletePhoto = async (url: string): Promise<void> => {
   try {
-    // Get default bucket name
-    const defaultBucketName = 'user-photos';
-    
-    // List buckets to find the correct one
-    const { data: buckets, error: bucketsError } = await supabase
-      .storage
-      .listBuckets();
-      
-    if (bucketsError) {
-      console.error("Error listing buckets:", bucketsError);
-      throw new Error(`Storage error: ${bucketsError.message}`);
-    }
-    
-    if (!buckets || buckets.length === 0) {
-      throw new Error("No storage buckets available. Please set up storage in your Supabase dashboard first.");
-    }
-    
-    // Check if our expected bucket exists
-    let bucketName = defaultBucketName;
-    const bucketExists = buckets?.some(bucket => bucket.name === defaultBucketName);
-    
-    if (!bucketExists && buckets && buckets.length > 0) {
-      // If not found, use the first available bucket
-      bucketName = buckets[0].name;
-      console.log(`Using existing bucket for deletion: ${bucketName}`);
-    }
+    // Use fixed bucket name now that we've verified it exists
+    const bucketName = 'user-photos';
     
     // Extract the file path from the URL
     const storageUrl = supabase.storage.from(bucketName).getPublicUrl('').data.publicUrl;
