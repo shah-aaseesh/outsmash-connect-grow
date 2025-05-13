@@ -40,7 +40,11 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
     const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
     if (!bucketExists) {
       console.error(`Bucket '${bucketName}' does not exist`);
-      throw new Error(`Storage bucket '${bucketName}' not found. Please create this bucket in your Supabase dashboard.`);
+      throw new Error(`The 'user-photos' bucket does not exist. Please create it in your Supabase dashboard:
+        1. Go to Storage in your Supabase dashboard
+        2. Click "New Bucket"
+        3. Name it "user-photos"
+        4. Enable Row Level Security (RLS)`);
     }
     
     // Upload to Supabase storage with improved error handling
@@ -60,14 +64,20 @@ export const uploadPhoto = async (file: File, userId: string): Promise<string> =
       }
       
       if (uploadError.message.includes("permission") || uploadError.message.includes("not authorized")) {
-        throw new Error(`Permission denied: Your RLS policies might not be configured correctly. 
-          Please ensure you've setup these policies in your Supabase dashboard:
-          
-          1. Go to Storage → Policies
-          2. For "user-photos" bucket, add these policies:
-            - Upload policy: auth.uid() = (storage.foldername)[1]::uuid
-            - Select policy: true (for public access) OR auth.uid() = (storage.foldername)[1]::uuid (for private)
-            - Delete policy: auth.uid() = (storage.foldername)[1]::uuid`);
+        throw new Error(`Permission denied: RLS policies need to be configured.
+        
+Please go to your Supabase dashboard and set up these policies:
+
+1. Navigate to Storage → Policies
+2. Select the "user-photos" bucket 
+3. Click "New Policy" → "Create a policy from scratch"
+4. Name: "User photo management"
+5. For "Operation", select "Apply this policy to all operations" 
+6. For "Policy definition" paste this SQL:
+   (storage.foldername)[1]::uuid = auth.uid()
+7. Click "Save Policy"
+
+This will allow users to only manage their own photos.`);
       }
       
       throw new Error(`Upload failed: ${uploadError.message}`);
@@ -123,9 +133,20 @@ export const deletePhoto = async (url: string): Promise<void> => {
       
       // Provide more specific RLS-related error messages for deletion
       if (error.message.includes("permission") || error.message.includes("not authorized")) {
-        throw new Error(`Permission denied: You might not have the correct RLS policies for deletion.
-          Make sure you have this policy for the "user-photos" bucket:
-          - Delete policy: auth.uid() = (storage.foldername)[1]::uuid`);
+        throw new Error(`Permission denied: RLS policies need to be configured.
+        
+Please go to your Supabase dashboard and set up this policy:
+
+1. Navigate to Storage → Policies
+2. Select the "user-photos" bucket 
+3. Click "New Policy" → "Create a policy from scratch"
+4. Name: "User photo management"
+5. For "Operation", select "Apply this policy to all operations" 
+6. For "Policy definition" paste this SQL:
+   (storage.foldername)[1]::uuid = auth.uid()
+7. Click "Save Policy"
+
+This will allow users to only manage their own photos.`);
       }
       
       throw new Error(`Failed to delete photo: ${error.message}`);

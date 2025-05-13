@@ -28,6 +28,43 @@ export const supabase = createClient(
 // This defines the redirect URL for auth operations
 export const authRedirectUrl = `${siteUrl}/auth/callback`;
 
+/**
+ * Create required storage bucket for user photos if it doesn't exist
+ * Note: This requires admin privileges and should be run in the Supabase dashboard
+ * or during project initialization
+ */
+export const ensureStorageBuckets = async () => {
+  try {
+    // Check if the bucket exists
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const userPhotosBucketExists = buckets?.some(bucket => bucket.name === 'user-photos');
+    
+    if (!userPhotosBucketExists) {
+      console.log('The "user-photos" bucket needs to be created in the Supabase dashboard.');
+      console.log(`
+Storage Bucket Setup Instructions:
+1. Go to your Supabase dashboard: ${supabaseUrl}
+2. Navigate to Storage in the sidebar
+3. Click "New Bucket"
+4. Name: "user-photos"
+5. Make sure "Enable Row Level Security (RLS)" is checked
+6. Click "Create bucket"
+
+Then set up RLS policies:
+1. Select the "user-photos" bucket
+2. Go to the "Policies" tab
+3. Click "New Policy" → "Create a policy from scratch"
+4. Name: "User photo management"
+5. Select "Apply this policy to all operations"
+6. For policy definition, paste: (storage.foldername)[1]::uuid = auth.uid()
+7. Click "Save Policy"
+      `);
+    }
+  } catch (error) {
+    console.error('Error checking storage buckets:', error);
+  }
+};
+
 // Function to get email template content
 export const getEmailTemplate = () => {
   return {
