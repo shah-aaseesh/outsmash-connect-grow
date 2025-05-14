@@ -1,11 +1,13 @@
 
 import { useRef } from "react";
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Upload } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PhotoGrid } from "@/components/photo-upload/PhotoGrid";
 import { PhotoTips } from "@/components/photo-upload/PhotoTips";
 import { usePhotoUpload } from "@/hooks/use-photo-upload";
+import { Button } from "@/components/ui/button";
+import { ImagePreview } from "@/components/photo-upload/ImagePreview";
 
 const MAX_PHOTOS = 6;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -17,7 +19,10 @@ const ProfileSetupPhotos = ({ form }: { form: any }) => {
     uploading, 
     uploadError, 
     handleFileUpload, 
-    removePhoto 
+    removePhoto,
+    previewFiles,
+    removePreviewFile,
+    uploadPreviewFiles
   } = usePhotoUpload({
     form,
     maxPhotos: MAX_PHOTOS,
@@ -51,13 +56,42 @@ const ProfileSetupPhotos = ({ form }: { form: any }) => {
           <FormItem>
             <FormLabel>Photos (Maximum {MAX_PHOTOS})</FormLabel>
             
+            {/* Display uploaded photos */}
             <PhotoGrid
               photos={field.value || []}
-              maxPhotos={MAX_PHOTOS}
+              maxPhotos={MAX_PHOTOS - (previewFiles.length || 0)}
               onRemovePhoto={removePhoto}
               onUploadClick={handleUploadClick}
               uploading={uploading}
             />
+            
+            {/* Display preview files if there are any */}
+            {previewFiles.length > 0 && (
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-sm font-medium">Selected photos</h3>
+                  <Button 
+                    onClick={uploadPreviewFiles} 
+                    disabled={uploading}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {uploading ? "Uploading..." : "Upload selected"}
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  {previewFiles.map((file, index) => (
+                    <ImagePreview
+                      key={`preview-${index}-${file.name}`}
+                      file={file}
+                      onRemove={() => removePreviewFile(index)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
             
             <input
               type="file"

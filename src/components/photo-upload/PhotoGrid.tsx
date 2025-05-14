@@ -56,7 +56,7 @@ export const PhotoGrid = ({
         </div>
       ))}
       
-      {photos.length < maxPhotos && (
+      {maxPhotos > 0 && (
         <div className={cn(
           "border border-dashed border-border rounded-md flex flex-col items-center justify-center p-4",
           "hover:border-primary/50 transition-colors cursor-pointer"
@@ -76,10 +76,10 @@ export const PhotoGrid = ({
               <>
                 <Image className="h-8 w-8 mb-2 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground text-center font-medium">
-                  Upload photos
+                  Select photos
                 </span>
                 <span className="text-xs text-muted-foreground/70 text-center mt-1">
-                  Click or drag files here
+                  Click to browse files
                 </span>
               </>
             )}
